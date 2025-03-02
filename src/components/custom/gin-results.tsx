@@ -18,7 +18,9 @@ interface GinResultsProps {
 }
 
 export async function GinResults({ searchParams }: GinResultsProps) {
-  const { query, countryId, distilleryId } = searchParams
+  // searchParamsをawaitする
+  const params = await searchParams;
+  const { query, countryId, distilleryId } = params;
   
   const gins = await prisma.gin.findMany({
     where: {
