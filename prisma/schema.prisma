@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Gin {
+  id             String          @id @default(uuid())
+  name           String
+  description    String?
+  abv            Float?
+  priceRange     String?
+  imageUrl       String?
+  officialSiteUrl String?
+  amazonUrl      String?
+  distillery     Distillery      @relation(fields: [distilleryId], references: [id])
+  distilleryId   String
+  country        Country         @relation(fields: [countryId], references: [id])
+  countryId      String
+  botanicals     GinBotanical[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  favorites      Favorite[]
+
+  @@map("gins")
+}
+
+model Distillery {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  location    String?
+  website     String?
+  foundedYear Int?
+  country     Country  @relation(fields: [countryId], references: [id])
+  countryId   String
+  gins        Gin[]
+
+  @@map("distilleries")
+}
+
+model Country {
+  id          String       @id @default(uuid())
+  name        String
+  region      String?
+  gins        Gin[]
+  distilleries Distillery[]
+
+  @@map("countries")
+}
+
+model Botanical {
+  id          String         @id @default(uuid())
+  name        String
+  description String?
+  gins        GinBotanical[]
+
+  @@map("botanicals")
+}
+
+model GinBotanical {
+  gin         Gin       @relation(fields: [ginId], references: [id])
+  ginId       String
+  botanical   Botanical @relation(fields: [botanicalId], references: [id])
+  botanicalId String
+  isPrimary   Boolean   @default(false)
+
+  @@id([ginId, botanicalId])
+  @@map("gin_botanicals")
+}
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  name      String?
+  favorites Favorite[]
+  createdAt DateTime   @default(now())
+
+  @@map("users")
+}
+
+model Favorite {
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  gin       Gin      @relation(fields: [ginId], references: [id])
+  ginId     String
+  createdAt DateTime @default(now())
+
+  @@id([userId, ginId])
+  @@map("favorites")
+}
